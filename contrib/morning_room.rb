@@ -7,6 +7,11 @@ require 'optparse'
 require_relative '../client/lib'
 
 require 'xmlsimple'
+require 'forecast_io'
+
+ForecastIO.configure do |configuration|
+    configuration.api_key = 'd11940efdf0245dea23a362fa4a25b7f'
+end
 
 font = muni_sign_font(File.join(File.dirname(__FILE__), '..', 'client', 'font'))
 
@@ -48,6 +53,23 @@ def get_arrival_times(route, stop, in_out)
   return stop_handler.predictions.map(&:time)
 end
 
+def get_underground_church
+  l_inbound = get_arrival_times("L", "Church St Station Inbound", "inbound")
+  m_inbound = get_arrival_times("M", "Church St Station Inbound", "inbound")
+  kt_inbound = get_arrival_times("KT", "Church St Station Inbound", "inbound")
+  # t_inbound = get_arrival_times("T", "Church St Station Inbound", "inbound")
+
+  (l_inbound + m_inbound + kt_inbound).sort
+end
+
+def get_j
+  get_arrival_times("J", "Church St & Duboce Ave", "inbound")
+end
+
+def update_sign_default(font, options)
+  update_sign(font, {:route2 => true, :bad_timing=>13, :update_interval=>30, :weather_hour=>"20", :route=>"30", :direction=>"outbound", :stop=>"Townsend & 4th", :weather_xml=>"http://forecast.weather.gov/MapClick.php?lat=37.767556&lon=-122.427979&FcstType=digitalDWML"})
+end
+
 def update_sign(font, options)
   # Render these times
   def prediction_string(arrival_times, options)
@@ -72,13 +94,17 @@ def update_sign(font, options)
     return predictions_str
   end
 
-  arrival_times = get_arrival_times(options[:route], options[:stop], options[:direction])
-  line1 = "#{options[:route]}:#{prediction_string(arrival_times, options)}"
+  arrival_times = get_underground_church.first(6)
+  # line1 = "#{options[:route]}:#{prediction_string(arrival_times, options)}"
+  line1 = prediction_string(arrival_times, options)
 
   if options[:route2]
-    arrival_times = get_arrival_times(options[:route2], options[:stop2], options[:direction2])
-    arrival_times = arrival_times.slice(0, 3)
-    line2 = "#{options[:route2]}:#{prediction_string(arrival_times, options)}"
+    # arrival_times = get_arrival_times(options[:route2], options[:stop2], options[:direction2])
+    # arrival_times = arrival_times.slice(0, 3)
+    # line2 = "#{options[:route2]}:#{prediction_string(arrival_times, options)}"
+    arrival_times = get_j
+    arrival_times = arrival_times.first(3)
+    line2 = "J:#{prediction_string(arrival_times, options)}"
   else
     line2 = ""
   end
@@ -86,39 +112,45 @@ def update_sign(font, options)
   # Get weather.
   if options[:weather_xml]; begin
     # Load forecast.  TODO: add throttling (it hardly changes every 30 seconds).
-    url = options[:weather_xml]
-    xml = Net::HTTP.get(URI.parse(url))
-    doc =  XmlSimple.xml_in(xml)
-    # Pad hour with zero.
-    hour = sprintf("%2d", options[:weather_hour])
-    # Find table cell index that represents the hour we're interested in.
-    time_index = doc['data'].first['time-layout'].first['start-valid-time'].find_index {|t| t =~ /T#{hour}/ }
-    # Now find the actual temperature at that hour.
-    weather_later = doc['data'].first['parameters'].first['temperature'].first['value'][time_index]
-    # And the current temperature, too (it's in the first cell).
-    weather_now = doc['data'].first['parameters'].first['temperature'].first['value'][0]
+    # url = options[:weather_xml]
+    # xml = Net::HTTP.get(URI.parse(url))
+    # doc =  XmlSimple.xml_in(xml)
+    # # Pad hour with zero.
+    # hour = sprintf("%2d", options[:weather_hour])
+    # # Find table cell index that represents the hour we're interested in.
+    # time_index = doc['data'].first['time-layout'].first['start-valid-time'].find_index {|t| t =~ /T#{hour}/ }
+    # # Now find the actual temperature at that hour.
+    # weather_later = doc['data'].first['parameters'].first['temperature'].first['value'][time_index]
+    # # And the current temperature, too (it's in the first cell).
+    # weather_now = doc['data'].first['parameters'].first['temperature'].first['value'][0]
 
-    # Get rain conditions
-    begin
-      conditions = doc['data'].first['parameters'].first['weather'].first['weather-conditions'][time_index]
-      rain = (conditions['value'] || []).find {|c| c['weather-type'] == 'rain'}
-      if rain
-        coverage_map = {
-          # Todo: uncover more rainfall phrases!
-          'slight chance' => 141.chr,
-          'chance' => 143.chr,
-          'likely' => 146.chr,
-        }
-        # Display "?" if the rainfall string is not recognized (otherwise I'd
-        # not see that there's a chance of rain in such cases).
-        rain_str = coverage_map[rain['coverage'] || "?"]
-      end
-    rescue => e
-      $stderr.puts "Weather error received: #{e}\n#{e.backtrace.join("\n")}"
-      rain_str = ''
-    end
+    # # Get rain conditions
+    # begin
+    #   conditions = doc['data'].first['parameters'].first['weather'].first['weather-conditions'][time_index]
+    #   rain = (conditions['value'] || []).find {|c| c['weather-type'] == 'rain'}
+    #   if rain
+    #     coverage_map = {
+    #       # Todo: uncover more rainfall phrases!
+    #       'slight chance' => 141.chr,
+    #       'chance' => 143.chr,
+    #       'likely' => 146.chr,
+    #     }
+    #     # Display "?" if the rainfall string is not recognized (otherwise I'd
+    #     # not see that there's a chance of rain in such cases).
+    #     rain_str = coverage_map[rain['coverage'] || "?"]
+    #   end
+    # rescue => e
+    #   $stderr.puts "Weather error received: #{e}\n#{e.backtrace.join("\n")}"
+    #   rain_str = ''
+    # end
 
-    weather_str = "#{130.chr}#{weather_now}#{129.chr}#{weather_later}#{rain_str}"
+    forecast = ForecastIO.forecast(37.767556, -122.427979)
+
+    low_temp = forecast["daily"]["data"].first["temperatureMin"].to_i
+    high_temp = forecast["daily"]["data"].first["temperatureMax"].to_i
+
+    # weather_str = "#{130.chr}#{weather_now}#{129.chr}#{130.chr}#{weather_later}#{rain_str}"
+    weather_str = "#{130.chr}#{low_temp}#{129.chr}#{130.chr}#{high_temp}"
   rescue => e
     # We rescue on various key errors, and inavailability.  Turn this on for
     # debugging.
@@ -133,7 +165,7 @@ end
 
 while true
   begin
-    darken_if_necessary(options) or update_sign(font, options)
+    darken_if_necessary(options) or update_sign_default(font, options)
   rescue => e
     $stderr.puts "Well, we continue despite this error: #{e}\n#{e.backtrace.join("\n")}"
   end

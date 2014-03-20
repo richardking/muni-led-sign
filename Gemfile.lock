@@ -1,0 +1,28 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amatch (0.2.11)
+      tins (~> 0.3)
+    faraday (0.9.0)
+      multipart-post (>= 1.2, < 3)
+    forecast_io (2.0.0)
+      faraday
+      hashie
+      multi_json
+    hashie (2.0.5)
+    multi_json (1.9.2)
+    multipart-post (2.0.0)
+    muni (0.0.6)
+      amatch
+      thor
+      xml-simple
+    thor (0.18.1)
+    tins (0.13.2)
+    xml-simple (1.1.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  forecast_io
+  muni (= 0.0.6)

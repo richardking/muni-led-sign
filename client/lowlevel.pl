@@ -91,4 +91,4 @@ for my $message_data (@messages) {
 #         effect => "scroll",
 #         speed => 3
 # );
-$sign->send(device => "/dev/ttyUSB0");
+$sign->send(device => "/dev/tty.usbserial", packetdelay => 0.1);
