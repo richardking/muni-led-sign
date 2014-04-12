@@ -17,7 +17,7 @@ font = muni_sign_font(File.join(File.dirname(__FILE__), '..', 'client', 'font'))
 
 options = {
   :bad_timing => 13,
-  :update_interval => 30,
+  :update_interval => 10,
   :weather_hour => 19,
 }
 OptionParser.new do |opts|
