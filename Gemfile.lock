@@ -3,6 +3,7 @@ GEM
   specs:
     amatch (0.2.11)
       tins (~> 0.3)
+    chronic (0.10.2)
     faraday (0.9.0)
       multipart-post (>= 1.2, < 3)
     forecast_io (2.0.0)
@@ -24,5 +25,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  chronic
   forecast_io
   muni (= 0.0.6)
