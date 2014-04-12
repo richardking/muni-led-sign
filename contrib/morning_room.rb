@@ -8,6 +8,7 @@ require_relative '../client/lib'
 
 require 'xmlsimple'
 require 'forecast_io'
+require_relative '../client/lib/weather_cache'
 
 ForecastIO.configure do |configuration|
     configuration.api_key = 'd11940efdf0245dea23a362fa4a25b7f'
@@ -144,11 +145,12 @@ def update_sign(font, options)
     #   rain_str = ''
     # end
 
-    forecast = ForecastIO.forecast(37.767556, -122.427979)
+    # forecast = ForecastIO.forecast(37.767556, -122.427979)
 
-    low_temp = forecast["daily"]["data"].first["temperatureMin"].to_i
-    high_temp = forecast["daily"]["data"].first["temperatureMax"].to_i
+    # low_temp = forecast["daily"]["data"].first["temperatureMin"].to_i
+    # high_temp = forecast["daily"]["data"].first["temperatureMax"].to_i
 
+    low_temp, high_temp = WeatherCache.new.retrieve_weather
     # weather_str = "#{130.chr}#{weather_now}#{129.chr}#{130.chr}#{weather_later}#{rain_str}"
     weather_str = "#{130.chr}#{low_temp}#{129.chr}#{130.chr}#{high_temp}"
   rescue => e
