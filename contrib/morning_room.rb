@@ -55,7 +55,7 @@ def get_arrival_times(route, stop, in_out)
       stop != stop_handler.title
   # return stop_handler.predictions.map(&:time)
   # stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }
-  puts stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }.select { |st| (st.time - Time.now) > 60 }
+  stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }.select { |st| (st.time - Time.now) > 60 }
 end
 
 def get_underground_church
