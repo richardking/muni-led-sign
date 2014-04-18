@@ -20,7 +20,7 @@ StationTime = Struct.new(:train, :time)
 
 options = {
   :bad_timing => 13,
-  :update_interval => 30,
+  :update_interval => 15,
   :weather_hour => 19,
 }
 OptionParser.new do |opts|
@@ -73,7 +73,7 @@ def get_j
 end
 
 def update_sign_default(font, options)
-  update_sign(font, {:route2 => true, :bad_timing=>13, :update_interval=>30, :weather_hour=>"20", :route=>"30", :direction=>"outbound", :stop=>"Townsend & 4th", :weather_xml=>"http://forecast.weather.gov/MapClick.php?lat=37.767556&lon=-122.427979&FcstType=digitalDWML"})
+  update_sign(font, {:route2 => true, :bad_timing=>13, :update_interval=>15, :weather_hour=>"20", :route=>"30", :direction=>"outbound", :stop=>"Townsend & 4th", :weather_xml=>"http://forecast.weather.gov/MapClick.php?lat=37.767556&lon=-122.427979&FcstType=digitalDWML"})
 end
 
 def update_sign(font, options)
