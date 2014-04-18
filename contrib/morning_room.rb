@@ -54,8 +54,8 @@ def get_arrival_times(route, stop, in_out)
   raise "Couldn't find stop: found '#{stop_handler.title}' for '#{stop}'" if
       stop != stop_handler.title
   # return stop_handler.predictions.map(&:time)
-  puts stop_handler.predictions.map(&:time)
-  stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }
+  # stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }
+  puts stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }.select { |st| (st.time - Time.now) > 60 }
 end
 
 def get_underground_church
@@ -97,7 +97,7 @@ def update_sign(font, options)
           predictions_str << "#{((at.time-prev) >= options[:bad_timing])? 128.chr : '-'}"
         end
         first = false
-        predictions_str << (at.train == "KT" ? "#{at.time}#{130.chr}" : "#{at.time}")
+        predictions_str << (at.train == "KT" ? "#{at.time}#{131.chr}" : "#{at.time}")
         # predictions_str << "#{at.time}#{at.train}"
         prev = at.time
 
