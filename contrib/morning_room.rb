@@ -16,6 +16,8 @@ end
 
 font = muni_sign_font(File.join(File.dirname(__FILE__), '..', 'client', 'font'))
 
+StationTime = Struct.new(:train, :time)
+
 options = {
   :bad_timing => 13,
   :update_interval => 30,
@@ -51,7 +53,9 @@ def get_arrival_times(route, stop, in_out)
   stop_handler = route_handler.send(in_out.to_sym).stop_at(stop)
   raise "Couldn't find stop: found '#{stop_handler.title}' for '#{stop}'" if
       stop != stop_handler.title
-  return stop_handler.predictions.map(&:time)
+  # return stop_handler.predictions.map(&:time)
+  puts stop_handler.predictions.map(&:time)
+  stop_handler.predictions.map(&:time).map {|t| StationTime.new(route, t) }
 end
 
 def get_underground_church
@@ -60,11 +64,12 @@ def get_underground_church
   kt_inbound = get_arrival_times("KT", "Church St Station Inbound", "inbound")
   # t_inbound = get_arrival_times("T", "Church St Station Inbound", "inbound")
 
-  (l_inbound + m_inbound + kt_inbound).sort
+  (l_inbound + m_inbound + kt_inbound).sort{|x,y| x[:time] <=> y[:time] }
 end
 
 def get_j
-  get_arrival_times("J", "Church St & Duboce Ave", "inbound")
+  # get_arrival_times("J", "Church St & Duboce Ave", "inbound")
+  get_arrival_times("J", "Church St & Market St", "inbound")
 end
 
 def update_sign_default(font, options)
@@ -75,22 +80,51 @@ def update_sign(font, options)
   # Render these times
   def prediction_string(arrival_times, options)
     puts arrival_times.inspect
-    predictions = arrival_times.map{|t| ((t - Time.now)/60).floor}
+    # predictions = arrival_times.map{|t| ((t - Time.now)/60).floor}
 
     predictions_str = ''
     prev = 0
     first = true
+    puts "xx"
 
-    for t in predictions do
-      # Add ellipsis between predictions if distance's too long.
-      # 31 is a specific charater defined in specific.simpleglyphs
-      if not first
-        predictions_str << "#{((t-prev) >= options[:bad_timing])? 128.chr : '-'}"
+    if arrival_times.first.respond_to?(:train)
+      arrival_times.each {|at| at.time = ((at.time - Time.now)/60).floor }
+
+      puts "x"
+      puts arrival_times.inspect
+      arrival_times.each do |at|
+        if !first
+          predictions_str << "#{((at.time-prev) >= options[:bad_timing])? 128.chr : '-'}"
+        end
+        first = false
+        predictions_str << (at.train == "KT" ? "#{at.time}#{130.chr}" : "#{at.time}")
+        # predictions_str << "#{at.time}#{at.train}"
+        prev = at.time
+
       end
-      first = false
-      predictions_str << "#{t}"
-      prev = t
+    else
+      predictions = arrival_times.map{|t| ((t - Time.now)/60).floor}
+
+      predictions.each do |t|
+        if !first
+          predictions_str << "#{((t-prev) >= options[:bad_timing])? 128.chr : '-'}"
+        end
+        first = false
+        predictions_str << "#{t}"
+        prev = t
+      end
     end
+
+    # for t in predictions do
+    #   # Add ellipsis between predictions if distance's too long.
+    #   # 31 is a specific charater defined in specific.simpleglyphs
+    #   if not first
+    #     predictions_str << "#{((t-prev) >= options[:bad_timing])? 128.chr : '-'}"
+    #   end
+    #   first = false
+    #   predictions_str << "#{t}"
+    #   prev = t
+    # end
 
     return predictions_str
   end
@@ -98,6 +132,8 @@ def update_sign(font, options)
   arrival_times = get_underground_church.first(6)
   # line1 = "#{options[:route]}:#{prediction_string(arrival_times, options)}"
   line1 = prediction_string(arrival_times, options)
+  puts "XXX"
+  puts line1.inspect
 
   if options[:route2]
     # arrival_times = get_arrival_times(options[:route2], options[:stop2], options[:direction2])
