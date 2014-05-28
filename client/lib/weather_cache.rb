@@ -19,6 +19,14 @@ class WeatherCache
       @weather = {}
       @time = nil
     end
+    # if File.exist?('cached_forecast.yml')
+    #   @forecast = YAML.load_file('cached_forecast.yml')
+    #   @time = @forecast["time"]
+    #   @forecaset = @weather["forecast"]
+    # else
+    #   @forecast = {}
+    #   @time = nil
+    # end
     @timing = 1800 #seconds, half hour
   end
 
@@ -35,6 +43,13 @@ class WeatherCache
     File.open('cached_weather.yml', 'w') { |f| f.write weather.to_yaml }
   end
 
+  def cache_forecast(forecast)
+    weather["time"] = Time.now
+    weather["forecast"] = forecast
+
+    File.open('cached_forecast.yml', 'w') { |f| f.write weather.to_yaml }
+  end
+
   def get_weather
     puts "get weather"
     forecast = ForecastIO.forecast(37.767556, -122.427979)
@@ -46,6 +61,28 @@ class WeatherCache
     cache_weather(@low_temp, @high_temp)
 
     [low_temp, high_temp]
+  end
+
+  def get_forecast
+    puts "get forecast"
+    forecast = ForecastIO.forecast(37.767556, -122.427979)
+
+    @time = Time.now
+    @forecast = forecast["daily"]["data"].first(3).map{|t| t.temperatureMax.to_i }
+
+    # cache_forecast(@forecast)
+
+    puts @forecast.inspect
+    @forecast
+  end
+
+  def retrieve_forecast
+    get_forecast
+    # if within_time?
+    #   [@low_temp, @high_temp]
+    # else
+    #   get_weather
+    # end
   end
 
   def retrieve_weather

@@ -9,6 +9,7 @@ require_relative '../client/lib'
 require 'xmlsimple'
 require 'forecast_io'
 require_relative '../client/lib/weather_cache'
+require 'chronic'
 
 ForecastIO.configure do |configuration|
     configuration.api_key = 'd11940efdf0245dea23a362fa4a25b7f'
@@ -201,9 +202,28 @@ def update_sign(font, options)
   LED_Sign.pic(font.render_multiline([line1, line2], 8, :ignore_shift_h => true, :distance => 0, :fixed_width => LED_Sign::SCREEN_WIDTH).zero_one)
 end
 
+def display_forecast(font)
+  line1, line2 = '', ''
+  low_temp, high_temp = WeatherCache.new.retrieve_weather
+  weather_str = "#{130.chr}#{low_temp}#{129.chr}#{130.chr}#{high_temp}"
+  line1 << weather_str
+  forecast = WeatherCache.new.retrieve_forecast
+
+  forecast_str = "#{130.chr}#{forecast[0]} #{130.chr}#{forecast[1]} #{130.chr}#{forecast[2]}"
+  puts forecast_str
+  line2 << forecast_str
+  LED_Sign.pic(font.render_multiline([line1, line2], 8, :ignore_shift_h => true, :distance => 0, :fixed_width => LED_Sign::SCREEN_WIDTH).zero_one)
+end
+
 while true
   begin
-    darken_if_necessary(options) or update_sign_default(font, options)
+    if Time.now > Chronic.parse("today at 3pm")
+      puts "after"
+      display_forecast(font)
+    else
+      puts "before"
+      darken_if_necessary(options) or update_sign_default(font, options)
+    end
   rescue => e
     $stderr.puts "Well, we continue despite this error: #{e}\n#{e.backtrace.join("\n")}"
   end
