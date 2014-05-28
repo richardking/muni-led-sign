@@ -216,19 +216,20 @@ def display_forecast(font)
 end
 
 @update_interval = options[:update_interval]
+@override = File.exists?("./override.txt")
 
 while true
   begin
-    if Time.now > Chronic.parse("today at 3pm")
-      @update_interval = 1800
-      puts "after"
-      puts "update_interval #{@update_interval}"
-      display_forecast(font)
-    else
+    if Time.now < Chronic.parse("today at 3pm") || @override
       @update_interval = options[:update_interval]
       puts "update_interval #{@update_interval}"
       puts "before"
       darken_if_necessary(options) or update_sign_default(font, options)
+    else
+      @update_interval = 1800
+      puts "after"
+      puts "update_interval #{@update_interval}"
+      display_forecast(font)
     end
   rescue => e
     $stderr.puts "Well, we continue despite this error: #{e}\n#{e.backtrace.join("\n")}"
