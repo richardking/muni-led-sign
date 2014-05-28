@@ -215,18 +215,24 @@ def display_forecast(font)
   LED_Sign.pic(font.render_multiline([line1, line2], 8, :ignore_shift_h => true, :distance => 0, :fixed_width => LED_Sign::SCREEN_WIDTH).zero_one)
 end
 
+@update_interval = options[:update_interval]
+
 while true
   begin
     if Time.now > Chronic.parse("today at 3pm")
+      @update_interval = 1800
       puts "after"
+      puts "update_interval #{@update_interval}"
       display_forecast(font)
     else
+      @update_interval = options[:update_interval]
+      puts "update_interval #{@update_interval}"
       puts "before"
       darken_if_necessary(options) or update_sign_default(font, options)
     end
   rescue => e
     $stderr.puts "Well, we continue despite this error: #{e}\n#{e.backtrace.join("\n")}"
   end
-  sleep(options[:update_interval])
+  sleep(@update_interval)
 end
 
