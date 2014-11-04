@@ -8,7 +8,7 @@ require_relative '../client/lib'
 
 require 'xmlsimple'
 require 'forecast_io'
-require_relative '../client/lib/weather_cache'
+require_relative '../client/lib/weather_helper'
 require 'chronic'
 
 ForecastIO.configure do |configuration|
@@ -187,7 +187,7 @@ def update_sign(font, options)
     # low_temp = forecast["daily"]["data"].first["temperatureMin"].to_i
     # high_temp = forecast["daily"]["data"].first["temperatureMax"].to_i
 
-    low_temp, high_temp = WeatherCache.new.retrieve_weather
+    low_temp, high_temp = WeatherHelper.new.todays_weather
     # weather_str = "#{130.chr}#{weather_now}#{129.chr}#{130.chr}#{weather_later}#{rain_str}"
     weather_str = "#{130.chr}#{low_temp}#{129.chr}#{130.chr}#{high_temp}"
   rescue => e
@@ -204,10 +204,10 @@ end
 
 def display_forecast(font)
   line1, line2 = '', ''
-  low_temp, high_temp = WeatherCache.new.retrieve_weather
+  low_temp, high_temp = WeatherHelper.new.todays_weather
   weather_str = "#{130.chr}#{low_temp}#{129.chr}#{130.chr}#{high_temp}"
   line1 << weather_str
-  forecast = WeatherCache.new.retrieve_forecast
+  forecast = WeatherHelper.new.this_weeks_forecast
 
   forecast_str = "#{130.chr}#{forecast[0]} #{130.chr}#{forecast[1]} #{130.chr}#{forecast[2]}"
   puts forecast_str
