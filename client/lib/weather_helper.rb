@@ -18,6 +18,7 @@ class WeatherHelper
     @longitude = longitude
     @weather_store = YAML::Store.new("cached_weather.yml")
     @cache_window = 1800 # in seconds
+    @cache = cache
   end
 
   def todays_weather
