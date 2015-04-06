@@ -48,6 +48,9 @@ class WeatherHelper
   end
 
   def get_weather
+	ForecastIO.configure do |configuration|
+	    configuration.api_key = API_KEY
+	end
     raw_forecast        = ForecastIO.forecast(latitude, longitude)
     @todays_temp[:low]  = raw_forecast["daily"]["data"].first["temperatureMin"].to_i
     @todays_temp[:high] = raw_forecast["daily"]["data"].first["temperatureMax"].to_i

@@ -73,6 +73,22 @@ def get_j
   get_arrival_times("J", "Church St & Market St", "inbound")
 end
 
+def get_vanness
+  l_inbound = get_arrival_times("L", "Van Ness Station Inbound", "inbound")
+  m_inbound = get_arrival_times("M", "Van Ness Station Inbound", "inbound")
+  kt_inbound = get_arrival_times("KT", "Van Ness Station Inbound", "inbound")
+  j_inbound = get_arrival_times("J", "Van Ness Station Inbound", "inbound")
+
+  (l_inbound + m_inbound + kt_inbound + j_inbound).sort{|x,y| x[:time] <=> y[:time] }
+end
+
+def get_12
+puts "getting 12"
+  a = get_arrival_times("12", "Folsom St & 9th St", "inbound")
+  puts a.inspect
+  a
+end
+
 def update_sign_default(font, options)
   update_sign(font, {:route2 => true, :bad_timing=>13, :update_interval=>15, :weather_hour=>"20", :route=>"30", :direction=>"outbound", :stop=>"Townsend & 4th", :weather_xml=>"http://forecast.weather.gov/MapClick.php?lat=37.767556&lon=-122.427979&FcstType=digitalDWML"})
 end
@@ -98,7 +114,7 @@ def update_sign(font, options)
           predictions_str << "#{((at.time-prev) >= options[:bad_timing])? 128.chr : '-'}"
         end
         first = false
-        predictions_str << (at.train == "KT" ? "#{at.time}#{131.chr}" : "#{at.time}")
+        predictions_str << (at.train == "J" ? "#{at.time}#{131.chr}" : "#{at.time}")
         # predictions_str << "#{at.time}#{at.train}"
         prev = at.time
 
@@ -130,7 +146,9 @@ def update_sign(font, options)
     return predictions_str
   end
 
-  arrival_times = get_underground_church.first(6)
+#move to 10th st
+  #arrival_times = get_underground_church.first(6)
+  arrival_times = get_vanness.first(6)
   # line1 = "#{options[:route]}:#{prediction_string(arrival_times, options)}"
   line1 = prediction_string(arrival_times, options)
   puts "XXX"
@@ -140,9 +158,14 @@ def update_sign(font, options)
     # arrival_times = get_arrival_times(options[:route2], options[:stop2], options[:direction2])
     # arrival_times = arrival_times.slice(0, 3)
     # line2 = "#{options[:route2]}:#{prediction_string(arrival_times, options)}"
-    arrival_times = get_j
+
+#move to 10th st
+    #arrival_times = get_j
+    #arrival_times = arrival_times.first(3)
+    #line2 = "J:#{prediction_string(arrival_times, options)}"
+    arrival_times = get_12
     arrival_times = arrival_times.first(3)
-    line2 = "J:#{prediction_string(arrival_times, options)}"
+    line2 = "12:#{prediction_string(arrival_times, options)}"
   else
     line2 = ""
   end
